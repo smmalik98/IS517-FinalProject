@@ -1,0 +1,121 @@
+---
+title: "FinalProject-Team7"
+author: "Zahra Malwi"
+date: "05/04/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+setwd('D:\\OneDrive\\Documents\\Zahra_MS_Docs\\MethodsOfDS\\football-match-probability-prediction')
+
+#library(readr)
+#football <- read_csv("train.csv", col_names = TRUE)
+
+
+```
+
+```{r}
+df = read.csv('train.csv', na.strings=c("","NA"))
+
+
+
+library(tidyr)
+library(tidyverse)
+library(dplyr)
+df %>%
+summarise_all(list(~is.na(.)))%>%
+pivot_longer(everything(),
+names_to = "variables", values_to="missing") %>%
+count(variables, missing) %>%
+ggplot(aes(y=variables,x=n,fill=missing))+
+geom_col()
+
+```
+```{r}
+
+data.football = df[, which(colMeans(is.na(df)) <= 0.1)]
+
+
+
+data.football %>%
+summarise_all(list(~is.na(.)))%>%
+pivot_longer(everything(),
+names_to = "variables", values_to="missing") %>%
+count(variables, missing) %>%
+ggplot(aes(y=variables,x=n,fill=missing))+
+geom_col()
+
+
+#Left with 110938 rows
+```
+
+```{r}
+for ( value in colnames(data.football)){
+  
+  data.football = data.football %>% fill(value)
+}
+
+```
+```{r}
+sum(is.na(data.football))
+```
+```{r}
+
+# data.football = data.football[which(rowMeans(is.na(df)) <= 0.1),]
+# 
+# 
+# 
+# data.football %>%
+# summarise_all(list(~is.na(.)))%>%
+# pivot_longer(everything(),
+# names_to = "variables", values_to="missing") %>%
+# count(variables, missing) %>%
+# ggplot(aes(y=variables,x=n,fill=missing))+
+# geom_col()
+
+```
+
+
+Removed all the Null Values.
+
+Working with DateTime Columns:
+
+```{r}
+data.football$away_team_history_match_date_1 = as.Date(data.football$away_team_history_match_date_1)
+
+```
+
+```{r}
+#data.football$match_date_changed = format(as.POSIXct(data.football$match_date), format = "%H:%M:%S")
+
+data.football$match_date_changed = as.POSIXct(data.football$match_date,format="%Y-%m-%d %H:%M:%S", tz = "")
+
+#data.football$match_date_changed = as.POSIXct(data.football$match_date,format="")
+
+#t <- strftime(data.football$match_date, format="%H")
+
+```
+
+```{r}
+#head(data.football$match_date_changed)
+
+data.football$match_date_changed <- format(data.football$match_date_changed, format =  "%H:%M")
+head(data.football$match_date_changed)
+
+```
+
+
+```{r}
+
+for (val in colnames(data.football)){
+  if(str_contains(val, "date")) {
+    x <- c
+  }
+}
+
+```
