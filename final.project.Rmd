@@ -1,0 +1,93 @@
+---
+title: "517.Final Project"
+author: "Smit Malik"
+date: "4/18/2022"
+output: pdf_document
+---
+
+```{r}
+df = read.csv('train.csv', na.strings=c("","NA"))
+```
+
+```{r}
+library(tidyr)
+library(tidyverse)
+library(dplyr)
+df %>%
+summarise_all(list(~is.na(.)))%>%
+pivot_longer(everything(),
+names_to = "variables", values_to="missing") %>%
+count(variables, missing) %>%
+ggplot(aes(y=variables,x=n,fill=missing))+
+geom_col()
+
+```
+```{r}
+data.football = df[, which(colMeans(is.na(df)) <= 0.1)]
+data.football %>%
+summarise_all(list(~is.na(.)))%>%
+pivot_longer(everything(),
+names_to = "variables", values_to="missing") %>%
+count(variables, missing) %>%
+ggplot(aes(y=variables,x=n,fill=missing))+
+geom_col()
+```
+```{r}
+for ( value in colnames(data.football)){
+  
+  data.football = data.football %>% fill(value)
+}
+
+sum(is.na(data.football))
+```
+
+```{r}
+# converting to datetime
+data.football$away_team_history_match_date_1 = as.Date(data.football$away_team_history_match_date_1)
+data.football$home_team_history_match_date_1 = as.Date(data.football$home_team_history_match_date_1)
+data.football$match_date = as.Date(data.football$match_date)
+
+```
+
+```{r}
+# palying after how many days
+data.football$home_team_playing_after = data.football$match_date - data.football$home_team_history_match_date_1
+
+data.football$away_team_playing_after = data.football$match_date - data.football$away_team_history_match_date_1
+
+data.football$home_team_playing_after = as.numeric(data.football$home_team_playing_after)
+```
+
+```{r}
+# columns that end with follwoing string are appended to the vectors
+x <- c()
+for (val in colnames(data.football)){
+  if(((str_contains(val, "_6")) || (str_contains(val, "_7"))||(str_contains(val, "_8")) 
+      || (str_contains(val, "_9")) || (str_contains(val, "_10")))){
+    x <- append(x, val)
+  }
+}
+
+y = c()
+for (val in colnames(data.football)){
+  if(((str_contains(val, "_date_2")) || (str_contains(val, "_date_3"))||(str_contains(val, "_date_4")) 
+      || (str_contains(val, "_date_5")))){
+    y <- append(y, val)
+  }
+}
+```
+
+```{r}
+# removing columns that were appended before
+x
+y
+data.football <- data.football[ , ! names(data.football) %in% x]
+data.football <- data.football[ , ! names(data.football) %in% y]
+
+```
+
+```{r}
+dim(data.football)
+```
+
+
