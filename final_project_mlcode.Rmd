@@ -1,0 +1,102 @@
+---
+title: "final_project_model"
+author: "Smit Malik"
+date: "4/18/2022"
+output: pdf_document
+---
+
+```{r}
+setwd("/Users/smitmalik/Desktop/UIUC/517")
+df = read.csv('data.football.csv')
+```
+
+```{r}
+library(randomForest)
+library(caret)
+
+x = c('home_team_name', 'away_team_name', 'match_date', 'league_name', 'league_id',
+      'home_team_history_match_date_1', 'match_date_changed', 'away_team_history_match_date_1')
+
+df = df[ , ! names(df) %in% x]
+
+z = c()
+for (val in colnames(df)){
+  if(((str_contains(val, "league_id_1")) || (str_contains(val, "league_id_2"))||(str_contains(val, "league_id_3")) || (str_contains(val, "league_id_4")) || (str_contains(val, "league_id_5")))){
+    z <- append(z, val)
+  }
+}
+df = df[ , ! names(df) %in% z]
+
+corr = cor(df[, 4:65])
+thresh_cor = findCorrelation(corr, cutoff = 0.5)
+thresh_cor
+heatmap(corr)
+```
+```{r}
+df$is_cup = ifelse(grepl('False', df$is_cup), 0, 1)
+factored = c('is_cup', 'home_team_history_is_play_home_1','home_team_history_is_play_home_2',
+             'home_team_history_is_play_home_3',
+             'home_team_history_is_play_home_4',
+             'home_team_history_is_play_home_5',
+             'home_team_history_is_cup_1',
+             'home_team_history_is_cup_2',
+             'home_team_history_is_cup_3',
+             'home_team_history_is_cup_4',
+             'home_team_history_is_cup_5',
+             'away_team_history_is_play_home_1',
+             'away_team_history_is_play_home_2',
+             'away_team_history_is_play_home_3',
+             'away_team_history_is_play_home_4',
+             'away_team_history_is_play_home_5',
+             'away_team_history_is_cup_1',
+             'away_team_history_is_cup_2',
+             'away_team_history_is_cup_3',
+             'away_team_history_is_cup_4',
+             'away_team_history_is_cup_5')
+df[factored] = lapply(df[factored], as.factor)
+df$target = as.factor(df$target)
+head(df)
+```
+
+```{r}
+library(caret)
+#Dividing the dataset into 80:20 proportion, since training the model with whole
+#dataset would be like cheating.
+train_split <- createDataPartition(y = df$target, p = 0.8, list = FALSE)
+
+#Storing the 80% data in a variable
+train_set <- df[train_split,]
+#train_set$mpg01 <- factor(train_set$mpg01)
+#test_set$mpg01 <- factor(test_set$mpg01)
+
+#Storing the 20% data in a variable
+test_set <- df[-train_split,]
+#test_set$mpg01 <- factor(test_set$mpg01)
+#test_set$mpg01 = replace(test_set$mpg01, test_set$mpg01 == 2, 0)
+
+dim(train_set)
+dim(test_set)
+```
+
+```{r}
+set.seed(120)  # Setting seed
+classifier_RF = randomForest(x = train_set[-1],
+                             y = train_set$target,
+                             ntree = 500)
+  
+classifier_RF
+  
+# Predicting the Test set results
+y_pred = predict(classifier_RF, newdata = test_set[-1])
+y_train.pred = predict(classifier_RF, newdata = train_set[-1])
+# Confusion Matrix
+table(y_pred, test_set$target)
+table(y_train.pred, train_set$target)
+  
+# Plotting model
+plot(classifier_RF)
+  
+# Importance plot
+importance(classifier_RF)
+```
+
