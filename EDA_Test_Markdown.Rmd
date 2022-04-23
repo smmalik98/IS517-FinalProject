@@ -1,0 +1,101 @@
+---
+title: "517.Final Project - EDA Test_Markdown RMD"
+author: "Zahra Malwi"
+date: "4/18/2022"
+output: pdf_document
+fig_width: 6 
+fig_height: 15
+---
+
+```{r}
+#For test data 
+
+df_test = read.csv('test.csv', na.strings=c("","NA"))
+```
+
+```{r fig, fig.height = 20, fig.width = 8}
+library(tidyr)
+library(tidyverse)
+library(dplyr)
+df_test %>%
+summarise_all(list(~is.na(.)))%>%
+pivot_longer(everything(),
+names_to = "variables", values_to="missing") %>%
+count(variables, missing) %>%
+ggplot(aes(y=variables,x=n,fill=missing))+
+geom_col()
+
+```
+```{r fig, fig.height = 20, fig.width = 8}
+data.football_test = df_test[, which(colMeans(is.na(df_test)) <= 0.1)]
+data.football_test %>%
+summarise_all(list(~is.na(.)))%>%
+pivot_longer(everything(),
+names_to = "variables", values_to="missing") %>%
+count(variables, missing) %>%
+ggplot(aes(y=variables,x=n,fill=missing))+
+geom_col()
+```
+```{r}
+for ( value in colnames(data.football_test)){
+  
+  data.football_test = data.football_test %>% fill(value)
+}
+
+sum(is.na(data.football_test))
+```
+
+```{r}
+# converting to datetime
+data.football_test$away_team_history_match_date_1 = as.Date(data.football_test$away_team_history_match_date_1)
+data.football_test$home_team_history_match_date_1 = as.Date(data.football_test$home_team_history_match_date_1)
+data.football_test$match_date = as.Date(data.football_test$match_date)
+
+```
+
+```{r}
+# palying after how many days
+data.football_test$home_team_playing_after = data.football_test$match_date - data.football_test$home_team_history_match_date_1
+
+data.football_test$away_team_playing_after = data.football_test$match_date - data.football_test$away_team_history_match_date_1
+
+data.football_test$home_team_playing_after = as.numeric(data.football_test$home_team_playing_after)
+```
+
+```{r}
+# columns that end with follwoing string are appended to the vectors
+x <- c()
+for (val in colnames(data.football_test)){
+  if(((str_contains(val, "_6")) || (str_contains(val, "_7"))||(str_contains(val, "_8")) 
+      || (str_contains(val, "_9")) || (str_contains(val, "_10")))){
+    x <- append(x, val)
+  }
+}
+
+y = c()
+for (val in colnames(data.football_test)){
+  if(((str_contains(val, "_date_2")) || (str_contains(val, "_date_3"))||(str_contains(val, "_date_4")) 
+      || (str_contains(val, "_date_5")))){
+    y <- append(y, val)
+  }
+}
+```
+
+```{r}
+# removing columns that were appended before
+x
+y
+data.football_test <- data.football_test[ , ! names(data.football_test) %in% x]
+data.football_test <- data.football_test[ , ! names(data.football_test) %in% y]
+
+```
+
+```{r}
+dim(data.football_test)
+```
+
+
+```{r}
+write.csv(data.football_test,"D:/OneDrive/Documents/Zahra_MS_Docs/MethodsOfDS/football-match-probability-prediction/EDA/data.football_test.csv", row.names = FALSE)
+
+```
