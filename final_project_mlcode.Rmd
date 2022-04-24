@@ -98,5 +98,132 @@ plot(classifier_RF)
   
 # Importance plot
 importance(classifier_RF)
+
+
+```
+```{r}
+y_pred.prob = predict(classifier_RF, newdata = test_set[-1], type = 'prob')
+y_train.pred.prob = predict(classifier_RF, newdata = train_set[-1], 'prob')
+
+y_pred.prob
+```
+```{r}
+df_test = read.csv('test.csv', na.strings=c("","NA"))
+
+df_test %>%
+summarise_all(list(~is.na(.)))%>%
+pivot_longer(everything(),
+names_to = "variables", values_to="missing") %>%
+count(variables, missing) %>%
+ggplot(aes(y=variables,x=n,fill=missing))+
+geom_col()
+```
+```{r}
+data.football_test = df_test[, which(colMeans(is.na(df_test)) <= 0.1)]
+data.football_test %>%
+summarise_all(list(~is.na(.)))%>%
+pivot_longer(everything(),
+names_to = "variables", values_to="missing") %>%
+count(variables, missing) %>%
+ggplot(aes(y=variables,x=n,fill=missing))+
+geom_col()
+```
+```{r}
+for ( value in colnames(data.football_test)){
+  
+  data.football_test = data.football_test %>% fill(value)
+}
+sum(is.na(data.football_test))
+```
+```{r}
+data.football_test$away_team_history_match_date_1 = as.Date(data.football_test$away_team_history_match_date_1)
+data.football_test$home_team_history_match_date_1 = as.Date(data.football_test$home_team_history_match_date_1)
+data.football_test$match_date = as.Date(data.football_test$match_date)
+```
+
+```{r}
+# playing after how many days
+data.football_test$home_team_playing_after = data.football_test$match_date - data.football_test$home_team_history_match_date_1
+data.football_test$away_team_playing_after = as.numeric(data.football_test$match_date - data.football_test$away_team_history_match_date_1)
+data.football_test$home_team_playing_after = as.numeric(data.football_test$home_team_playing_after)
+```
+
+```{r}
+# columns that end with follwoing string are appended to the vectors
+x <- c()
+for (val in colnames(data.football_test)){
+  if(((str_contains(val, "_6")) || (str_contains(val, "_7"))||(str_contains(val, "_8")) 
+      || (str_contains(val, "_9")) || (str_contains(val, "_10")))){
+    x <- append(x, val)
+  }
+}
+y = c()
+for (val in colnames(data.football_test)){
+  if(((str_contains(val, "_date_2")) || (str_contains(val, "_date_3"))||(str_contains(val, "_date_4")) 
+      || (str_contains(val, "_date_5")))){
+    y <- append(y, val)
+  }
+}
+```
+
+```{r}
+# removing columns that were appended before
+x
+y
+data.football_test <- data.football_test[ , ! names(data.football_test) %in% x]
+data.football_test <- data.football_test[ , ! names(data.football_test) %in% y]
+
+```
+
+```{r}
+dim(data.football_test)
+```
+
+```{r}
+x = c('home_team_name', 'away_team_name', 'match_date', 'league_name', 'league_id',
+      'home_team_history_match_date_1', 'match_date_changed', 'away_team_history_match_date_1')
+
+data.football_test = data.football_test[ , ! names(data.football_test) %in% x]
+
+z = c()
+for (val in colnames(data.football_test)){
+  if(((str_contains(val, "league_id_1")) || (str_contains(val, "league_id_2"))||(str_contains(val, "league_id_3")) || (str_contains(val, "league_id_4")) || (str_contains(val, "league_id_5")))){
+    z <- append(z, val)
+  }
+}
+data.football_test = data.football_test[ , ! names(data.football_test) %in% z]
+```
+
+```{r}
+data.football_test$is_cup = ifelse(grepl('False', data.football_test$is_cup), 0, 1)
+factored = c('is_cup', 'home_team_history_is_play_home_1','home_team_history_is_play_home_2',
+             'home_team_history_is_play_home_3',
+             'home_team_history_is_play_home_4',
+             'home_team_history_is_play_home_5',
+             'home_team_history_is_cup_1',
+             'home_team_history_is_cup_2',
+             'home_team_history_is_cup_3',
+             'home_team_history_is_cup_4',
+             'home_team_history_is_cup_5',
+             'away_team_history_is_play_home_1',
+             'away_team_history_is_play_home_2',
+             'away_team_history_is_play_home_3',
+             'away_team_history_is_play_home_4',
+             'away_team_history_is_play_home_5',
+             'away_team_history_is_cup_1',
+             'away_team_history_is_cup_2',
+             'away_team_history_is_cup_3',
+             'away_team_history_is_cup_4',
+             'away_team_history_is_cup_5')
+data.football_test[factored] = lapply(data.football_test[factored], as.factor)
+head(data.football_test)
+```
+```{r}
+validation.pred = predict(classifier_RF, newdata = data.football_test, 'prob')
+validation.pred
+```
+
+```{r}
+identical(colnames(data.football_test), colnames(df[, -c(2)]))
 ```
 
