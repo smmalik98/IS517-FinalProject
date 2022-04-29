@@ -75,6 +75,7 @@ for (val in colnames(data.football)){
     y <- append(y, val)
   }
 }
+
 ```
 
 ```{r}
@@ -90,4 +91,101 @@ data.football <- data.football[ , ! names(data.football) %in% y]
 dim(data.football)
 ```
 
+```{r}
+# we will be using this dataset for EDA
+#write.csv(data.football,"/Users/smitmalik/Desktop/UIUC/517/data.football.csv", row.names = FALSE)
+```
 
+```{r}
+library(caret)
+library(tidyr)
+library(tidyverse)
+library(dplyr)
+library(sjmisc)
+
+x = c('home_team_name', 'away_team_name', 'match_date', 'league_name', 'league_id',
+      'home_team_history_match_date_1', 'match_date_changed', 'away_team_history_match_date_1')
+
+data.football = data.football[ , ! names(data.football) %in% x]
+
+z = c()
+for (val in colnames(data.football)){
+  if(((str_contains(val, "league_id_1")) || (str_contains(val, "league_id_2"))||(str_contains(val, "league_id_3")) || (str_contains(val, "league_id_4")) || (str_contains(val, "league_id_5")))){
+    z <- append(z, val)
+  }
+}
+data.football = data.football[ , ! names(data.football) %in% z]
+
+data.football$is_cup = ifelse(grepl('False', data.football$is_cup), 0, 1)
+factored = c('is_cup', 'home_team_history_is_play_home_1','home_team_history_is_play_home_2',
+             'home_team_history_is_play_home_3',
+             'home_team_history_is_play_home_4',
+             'home_team_history_is_play_home_5',
+             'home_team_history_is_cup_1',
+             'home_team_history_is_cup_2',
+             'home_team_history_is_cup_3',
+             'home_team_history_is_cup_4',
+             'home_team_history_is_cup_5',
+             'away_team_history_is_play_home_1',
+             'away_team_history_is_play_home_2',
+             'away_team_history_is_play_home_3',
+             'away_team_history_is_play_home_4',
+             'away_team_history_is_play_home_5',
+             'away_team_history_is_cup_1',
+             'away_team_history_is_cup_2',
+             'away_team_history_is_cup_3',
+             'away_team_history_is_cup_4',
+             'away_team_history_is_cup_5')
+data.football[factored] = lapply(data.football[factored], as.factor)
+data.football$target = as.factor(data.football$target)
+head(data.football)
+
+
+
+```
+
+```{r}
+str(data.football$target)
+numer = colnames(select_if(data.football, is.numeric))
+```
+
+```{r}
+numer = data.football[, c(numer)]
+corr = cor(numer)
+thresh_cor = findCorrelation(corr, cutoff = 0.5)
+thresh_cor
+heatmap(corr)
+```
+
+```{r}
+library(Hmisc)
+hist.data.frame(numer)
+```
+ 
+```{r}
+library(corrplot)
+
+corrplot(cor(numer[, -c(1)]),        # Correlation matrix
+         method = "shade", # Correlation plot method
+         type = "full",    # Correlation plot style (also "upper" and "lower")
+         diag = TRUE,      # If TRUE (default), adds the diagonal
+         tl.col = "black", # Labels color
+         bg = "white",     # Background color
+         title = "",       # Main title
+         col = NULL)       # Color palette
+```
+
+```{r}
+plot(data.football$target)
+```
+ 
+```{r}
+factored = select_if(data.football, is.factor)
+x = c(length(numer)-1, length(factored)-1, 1, 1)
+y = c('Numerical Variables', 'Categorical Variables', 'Target Variable', 'Unpredictive Variable')
+z = data.frame(y, x)
+plot(z$y)
+#need help in plotting types of data
+```
+ 
+ 
