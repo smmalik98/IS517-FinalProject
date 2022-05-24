@@ -1,0 +1,77 @@
+---
+title: "ML-Exploration - Data used in ML Model"
+author: "Zahra Malwi"
+date: "25/04/2022"
+output: html_document
+---
+
+```{r}
+
+setwd("D:/OneDrive/Documents/Zahra_MS_Docs/MethodsOfDS/football-match-probability-prediction") #Set user directory according to ones own system 
+
+data = read.csv('data.football.csv')
+
+
+```
+
+
+
+```{r}
+
+z = c()
+for (val in colnames(data)){
+  if(((str_contains(val, "league_id_1")) || (str_contains(val, "league_id_2"))||(str_contains(val, "league_id_3")) || (str_contains(val, "league_id_4")) || (str_contains(val, "league_id_5")))){
+    z <- append(z, val)
+  }
+}
+data = data[ , ! names(data) %in% z]
+
+#View(data)
+dim(data)
+
+
+```
+
+```{r}
+
+
+x = c('home_team_name', 'away_team_name', 'match_date', 'league_name', 'league_id',
+      'home_team_history_match_date_1', 'match_date_changed', 'away_team_history_match_date_1')
+
+data = data[ , ! names(data) %in% x]
+
+```
+
+```{r}
+
+data$is_cup = ifelse(grepl('False', data$is_cup), 0, 1)
+str(data$is_cup)
+
+```
+
+```{r}
+
+str(data)
+
+#Only the target column is in chr
+
+```
+
+
+__Data used for model with draw__
+```{r}
+write.csv(new_df,"D:/OneDrive/Documents/Zahra_MS_Docs/MethodsOfDS/football-match-probability-prediction/without_draw.csv", row.names = FALSE)
+```
+
+
+__Data used in Model without draw__
+
+```{r}
+new_df <- subset(data, target != "draw") 
+
+```
+
+```{r}
+write.csv(new_df,"D:/OneDrive/Documents/Zahra_MS_Docs/MethodsOfDS/football-match-probability-prediction/without_draw.csv", row.names = FALSE)
+
+```
