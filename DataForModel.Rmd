@@ -1,6 +1,6 @@
 ---
 title: "ML-Exploration - Data used in ML Model"
-author: "Zahra Malwi"
+author: "Zahra Malwi", "Smit Malik"
 date: "25/04/2022"
 output: html_document
 ---
