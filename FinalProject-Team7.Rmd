@@ -1,6 +1,6 @@
 ---
 title: "FinalProject-Team7"
-author: "Zahra Malwi"
+author: "Zahra Malwi", "Smit Malik"
 date: "05/04/2022"
 output: html_document
 ---
